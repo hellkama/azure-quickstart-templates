@@ -80,6 +80,7 @@
     "subnetPrefix": "10.0.0.0/24",
     "publicIPAddressName": "myPublicIP",
     "virtualNetworkName": "MyVNET",
+    "storageAccountName": "MyStorage",
     "linuxConfiguration": {
       "disablePasswordAuthentication": true,
       "ssh": {
@@ -93,6 +94,17 @@
     }
   },
   "resources": [
+    {
+    "type": "Microsoft.Storage/storageAccounts",
+    "apiVersion": "2018-07-01",
+    "name": "[variables('storageAccountName')]",
+    "location": "[resourceGroup().location]",
+    "sku": {
+        "name": "Standard_LRS"
+    },
+    "kind": "Storage",
+    "properties": {}
+},
     {
       "apiVersion": "2020-08-01",
       "type": "Microsoft.Network/publicIPAddresses",
@@ -204,15 +216,14 @@
             "sku": "[parameters('ubuntuOSVersion')]",
             "version": "latest"
           },
-          "osDisk": {
-            "osType": "Linux",
-            "name": "[concat(parameters('vmName'),'_OSDisk')]",
-            "caching": "ReadWrite",
-            "createOption": "FromImage",
-            "managedDisk": {
-              "storageAccountType": "Premium_LRS"
+            "osDisk": {
+                "name": "osdisk",
+                "vhd": {
+                    "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))).primaryEndpoints.blob, 'vhds/osdisk.vhd')]"
+                },
+                "caching": "ReadWrite",
+                "createOption": "FromImage"
             }
-          }
         },
         "networkProfile": {
           "networkInterfaces": [
